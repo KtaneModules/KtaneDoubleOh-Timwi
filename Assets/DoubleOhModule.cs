@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using DoubleOh;
 using UnityEngine;
 
@@ -301,14 +302,14 @@ public class DoubleOhModule : MonoBehaviour
     }
 
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"Cycle the buttons with “!{0} cycle”. This presses each button 3 times, in the order of vert1, horiz1, horiz2, vert2, submit. Look at whether the arrow is horizontal or vertical, and whether it has one or two lines, to see which is which. Submit your answer with “!{0} press vert1 horiz1 horiz2 vert2 submit”.";
+    private readonly string TwitchHelpMessage = @"!{0} cycle [presses each button 3 times, in the order of vert1, horiz1, horiz2, vert2, submit; look at whether the arrow is horizontal or vertical, and whether it has one or two lines, to see which is which] | !{0} vert1 horiz1 horiz2 vert2 submit";
 #pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string command)
     {
-        var parts = command.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        Match m;
 
-        if (parts.Length == 1 && parts[0].Equals("cycle", StringComparison.InvariantCultureIgnoreCase))
+        if ((m = Regex.Match(command, @"^\s*cycle\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
         {
             yield return null;
             for (int i = 0; i < Buttons.Length; i++)
@@ -322,10 +323,10 @@ public class DoubleOhModule : MonoBehaviour
                 yield return new WaitForSeconds(.5f);
             }
         }
-        else if (parts.Length > 1 && parts[0].Equals("press", StringComparison.InvariantCultureIgnoreCase))
+        else if ((m = Regex.Match(command, @"^\s*(?:press\s+)?(.*)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
         {
             var btns = new List<KMSelectable>();
-            foreach (var part in parts.Skip(1))
+            foreach (var part in m.Groups[1].Value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 if (part.Equals("horiz1", StringComparison.InvariantCultureIgnoreCase))
                     btns.Add(Buttons[1]);
